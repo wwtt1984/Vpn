@@ -6,7 +6,7 @@
  * @returns {*}
  */
 Vpn.prototype.VpnLogin = function (callback) {
-    return cordova.exec(callback, null,"VpnPlugin","Vpn");
+    return cordova.exec(callback, null,"VpnPlugin","Vpn",[]);
 };
 
 module.exports = (new Vpn());
