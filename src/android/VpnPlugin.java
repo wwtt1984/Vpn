@@ -7,21 +7,54 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import android.util.Log;
 import android.widget.Toast;
+import com.mycompany.webInspect.webInspect;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class VpnPlugin extends CordovaPlugin {
     public static String ACTION = "Vpn";
-    public static String user = "";
-
+    private static CallbackContext CallbackContext;
+    Timer timer;
     public boolean execute(String action, JSONArray data,
             CallbackContext callbackContext) throws JSONException {
         if (ACTION.equals(action)) {
-            user = data.getString(0);
-            VpnLogin(callbackContext);
+            timer = new Timer();
+            timer.schedule(new RemindTask(),0,500);
+            CallbackContext = callbackContext;
+            return true;
         }
         return false;
     }
 
-    public synchronized void VpnLogin(CallbackContext callbackContext) {
-       Toast.makeText(this.cordova.getActivity(), user,3000).show();
+    public static void VpnLogin(String message) {
+        CallbackContext.success(message);
     }
+
+    class RemindTask extends TimerTask{
+
+        int numWarningBeeps = 60; ////////////循环30秒，如果还是不成功，则返回失败
+        public void run(){
+             if(numWarningBeeps > 0)
+             {
+                 if(webInspect.VpnOk == "true" && webInspect.VpnSuccess == "true")
+                 {
+                     VpnLogin(webInspect.VpnOk);
+                     timer.cancel();
+                 }
+                 else if(webInspect.VpnOk == "true" &&  webInspect.VpnSuccess == "false")
+                 {
+                     VpnLogin("initfalse");
+                     timer.cancel();
+                 }
+                 numWarningBeeps--;
+             }
+             else
+             {
+                 VpnLogin("false");
+                 timer.cancel();
+             }
+        }
+    }
+
 }
