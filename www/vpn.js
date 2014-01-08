@@ -13,4 +13,9 @@ Vpn.prototype.VpnLoginFirst = function (callback) {
     return cordova.exec(callback, null,"VpnPlugin","VpnFirst",[]);
 };
 
+Vpn.prototype.VpnOnWifi = function (callback) {
+    return cordova.exec(callback, null,"VpnPlugin","VpnOnWifi",[]);
+};
+
+
 module.exports = (new Vpn());
