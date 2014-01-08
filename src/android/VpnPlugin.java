@@ -14,13 +14,23 @@ import java.util.TimerTask;
 
 public class VpnPlugin extends CordovaPlugin {
     public static String ACTION = "Vpn";
+    public static String VpnFirst = "VpnFirst";
     private static CallbackContext CallbackContext;
     Timer timer;
+    Timer timeload; ////监听是否第一次
+
     public boolean execute(String action, JSONArray data,
             CallbackContext callbackContext) throws JSONException {
         if (ACTION.equals(action)) {
             timer = new Timer();
             timer.schedule(new RemindTask(),0,500);
+            CallbackContext = callbackContext;
+            return true;
+        }
+        else if(VpnFirst.equals(action))
+        {
+            timeload = new Timer();
+            timeload.schedule(new RemindTaskLoad(),0,500);
             CallbackContext = callbackContext;
             return true;
         }
@@ -56,5 +66,20 @@ public class VpnPlugin extends CordovaPlugin {
              }
         }
     }
+
+     class RemindTaskLoad extends TimerTask{   //////////////////////检查是否第一次
+
+        int numWarningBeeps = 60; ////////////循环30秒，如果还是不成功，则返回失败
+        public void run(){
+             if(numWarningBeeps > 0)
+             {
+
+             }
+             else
+             {
+
+             }
+        }
+     }
 
 }
