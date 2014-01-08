@@ -13,24 +13,29 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class VpnPlugin extends CordovaPlugin {
-    public static String ACTION = "Vpn";
-    public static String VpnFirst = "VpnFirst";
+
     private static CallbackContext CallbackContext;
     Timer timer;
     Timer timeload; ////监听是否第一次
 
     public boolean execute(String action, JSONArray data,
             CallbackContext callbackContext) throws JSONException {
-        if (ACTION.equals(action)) {
+        if (action.equals("Vpn")) {
             timer = new Timer();
             timer.schedule(new RemindTask(),0,500);
             CallbackContext = callbackContext;
             return true;
         }
-        else if(VpnFirst.equals(action))
+        else if(action.equals("VpnFirst"))
         {
             timeload = new Timer();
             timeload.schedule(new RemindTaskLoad(),0,500);
+            CallbackContext = callbackContext;
+            return true;
+        }
+        else if(action.equals("VpnOnWifi"))
+        {
+
             CallbackContext = callbackContext;
             return true;
         }
