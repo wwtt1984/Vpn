@@ -48,9 +48,24 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             CallbackContext = callbackContext;
             return true;
         }
+        else if(action.equals("VpnCheckOnLine"))
+        {
+            if(webInspect.vpnresult != "true")
+            {
+                Toast.makeText(cnn, "来了来了",3000).show();
+                User = data.getString(0);
+                Pwd = data.getString(1);
+                this.VpnCheck();
+            }
+            else
+            {
+                Toast.makeText(cnn, "OKOK",3000).show();
+                callbackContext.success("true");
+            }
+            return true;
+        }
         else
         {
-
         }
         return false;
     }
