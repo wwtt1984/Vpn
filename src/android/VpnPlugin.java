@@ -52,14 +52,10 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         {
             if(webInspect.vpnresult != "true")
             {
-                Toast.makeText(cnn, "来了来了",3000).show();
-                User = data.getString(0);
-                Pwd = data.getString(1);
-                this.VpnCheck();
+                callbackContext.success("false");
             }
             else
             {
-                Toast.makeText(cnn, "OKOK",3000).show();
                 callbackContext.success("true");
             }
             return true;

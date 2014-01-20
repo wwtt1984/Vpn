@@ -9,8 +9,8 @@ Vpn.prototype.VpnLogin = function (user,pwd,callback) {
     return cordova.exec(callback, null,"VpnPlugin","Vpn",[user,pwd]);
 };
 
-Vpn.prototype.VpnOnWifi = function (callback) {
-    return cordova.exec(callback, null,"VpnPlugin","VpnOnWifi",[]);
+Vpn.prototype.VpnOnWifi = function (ip,callback) {
+    return cordova.exec(callback, null,"VpnPlugin","VpnOnWifi",[ip]);
 };
 
 Vpn.prototype.VpnCheckOnLine = function (user,pwd,callback) {
