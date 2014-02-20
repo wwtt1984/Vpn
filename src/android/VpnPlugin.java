@@ -9,13 +9,9 @@ import android.util.Log;
 import android.widget.Toast;
 import com.mycompany.webInspect.webInspect;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+
 import com.sangfor.vpn.IVpnDelegate;
 import com.sangfor.vpn.SFException;
 import com.sangfor.vpn.auth.SangforNbAuth;
@@ -23,7 +19,25 @@ import com.sangfor.vpn.common.VpnCommon;
 import android.app.Activity;
 import android.view.View;
 
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Enumeration;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+
+
 import android.content.Context;
+
+
+import android.net.DhcpInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.text.format.Formatter;
 
 public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
@@ -31,6 +45,9 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
     Timer timer;
     public static String User = "";
     public static String Pwd = "";
+    private static WifiManager wifiManager;
+    private static DhcpInfo dhcpInfo;
+    private static WifiInfo wifiInfo;
 
     public boolean execute(String action, JSONArray data,
             CallbackContext callbackContext) throws JSONException {
@@ -45,7 +62,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
         else if(action.equals("VpnOnWifi"))
         {
-            CallbackContext = callbackContext;
+            callbackContext.success(getGateWay(this.cordova.getActivity()));
             return true;
         }
         else if(action.equals("VpnCheckOnLine"))
@@ -57,6 +74,19 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             else
             {
                 callbackContext.success("true");
+            }
+            return true;
+        }
+        else if(action.equals("NetWorkIsON"))
+        {
+            boolean res = isNetworkAvailable(this.cordova.getActivity());
+            if(res)
+            {
+                callbackContext.success("true");
+            }
+            else
+            {
+                callbackContext.success("false");
             }
             return true;
         }
@@ -180,5 +210,78 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     public void vpnCallback(int vpnResult, int authType) { //////////////不能删除，只作为覆盖，不执行操作
 
+    }
+
+    public void vpnRndCodeCallback(byte[] data) {
+
+    }
+
+    public String getGateWay(Context context){
+
+        String rtxvalue = "";
+
+        if(isWifi(context))
+        {
+            try
+            {
+                wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                dhcpInfo = wifiManager.getDhcpInfo();
+                //return "dh_ip:"+FormatIP(dhcpInfo.ipAddress)+"$"+"dh_gateway"+FormatIP(dhcpInfo.gateway);
+                rtxvalue = FormatIP(dhcpInfo.gateway);
+            }
+            catch(Exception ex)
+            {
+                rtxvalue = "";
+            }
+        }
+
+        return rtxvalue;
+    }
+
+    private  boolean isWifi(Context mContext) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) mContext
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetInfo = connectivityManager.getActiveNetworkInfo();
+        if (activeNetInfo != null
+                && activeNetInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+            return true;
+        }
+        return false;
+    }
+
+    public String FormatIP(int IpAddress) {
+        return Formatter.formatIpAddress(IpAddress);
+    }
+
+    public String getIp(Context context){
+      wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+      dhcpInfo = wifiManager.getDhcpInfo();
+      wifiInfo = wifiManager.getConnectionInfo();
+      //wifiInfo返回当前的Wi-Fi连接的动态信息
+      int ip = wifiInfo.getIpAddress();
+      return "wifi_ip:"+FormatIP(ip);
+    }
+
+
+    public boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                if (connectivity == null) {
+                       //System.out.println("**** newwork is off");
+                        return false;
+                } else {
+                        NetworkInfo info = connectivity.getActiveNetworkInfo();
+                        if(info == null){
+                              //System.out.println("**** newwork is off");
+                                return false;
+                        }else{
+                                if(info.isAvailable()){
+                                      //System.out.println("**** newwork is on");
+                                        return true;
+                                }
+
+                        }
+                }
+               // System.out.println("**** newwork is off");
+                return false;
     }
 }
