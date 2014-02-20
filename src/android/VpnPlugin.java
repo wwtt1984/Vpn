@@ -198,11 +198,22 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
                      VpnLogin(webInspect.vpnresult);
                      timer.cancel();
                  }
+                 else if(webInspect.vpnresult == "logout")
+                 {
+                      VpnLogin(webInspect.vpnresult);
+                      timer.cancel();
+                 }
+                 else if(webInspect.vpnresult == "error")
+                 {
+                       VpnLogin(webInspect.vpnresult);
+                       timer.cancel();
+                 }
                  numWarningBeeps--;
              }
              else
              {
                  VpnLogin("false");
+                 SangforNbAuth.getInstance().vpnQuit();
                  timer.cancel();
              }
         }
