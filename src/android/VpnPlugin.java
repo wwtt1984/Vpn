@@ -77,19 +77,6 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             }
             return true;
         }
-        else if(action.equals("NetWorkIsON"))
-        {
-            boolean res = isNetworkAvailable(this.cordova.getActivity());
-            if(res)
-            {
-                callbackContext.success("true");
-            }
-            else
-            {
-                callbackContext.success("false");
-            }
-            return true;
-        }
         else
         {
         }
@@ -265,34 +252,12 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
     }
 
     public String getIp(Context context){
-      wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-      dhcpInfo = wifiManager.getDhcpInfo();
-      wifiInfo = wifiManager.getConnectionInfo();
-      //wifiInfo返回当前的Wi-Fi连接的动态信息
-      int ip = wifiInfo.getIpAddress();
-      return "wifi_ip:"+FormatIP(ip);
+         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+         dhcpInfo = wifiManager.getDhcpInfo();
+         wifiInfo = wifiManager.getConnectionInfo();
+         //wifiInfo返回当前的Wi-Fi连接的动态信息
+         int ip = wifiInfo.getIpAddress();
+         return "wifi_ip:"+FormatIP(ip);
     }
 
-
-    public boolean isNetworkAvailable(Context context) {
-        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-                if (connectivity == null) {
-                       //System.out.println("**** newwork is off");
-                        return false;
-                } else {
-                        NetworkInfo info = connectivity.getActiveNetworkInfo();
-                        if(info == null){
-                              //System.out.println("**** newwork is off");
-                                return false;
-                        }else{
-                                if(info.isAvailable()){
-                                      //System.out.println("**** newwork is on");
-                                        return true;
-                                }
-
-                        }
-                }
-               // System.out.println("**** newwork is off");
-                return false;
-    }
 }
