@@ -113,7 +113,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
      *
      * @return 成功返回true，失败返回false，一般情况下返回true
      */
-    public static boolean initSslVpn() {
+    public boolean initSslVpn() {
         SangforNbAuth sfAuth = SangforNbAuth.getInstance();
         InetAddress iAddr = null;
         try {
@@ -200,6 +200,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
              else
              {
                  VpnLogin("false");
+                 webInspect.vpnresult = null;
                  SangforNbAuth.getInstance().vpnQuit();
                  timer.cancel();
              }
