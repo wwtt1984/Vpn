@@ -17,4 +17,8 @@ Vpn.prototype.VpnCheckOnLine = function (user,pwd,callback) {
     return cordova.exec(callback, null,"VpnPlugin","VpnCheckOnLine",[user,pwd]);
 };
 
+Vpn.prototype.VpnOFF = function (callback) {
+    return cordova.exec(callback, null,"VpnPlugin","VpnOFF",[]);
+};
+
 module.exports = (new Vpn());

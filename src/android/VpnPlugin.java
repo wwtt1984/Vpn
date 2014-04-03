@@ -77,8 +77,9 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             }
             return true;
         }
-        else
+        else if(action.equals("VpnOFF"))
         {
+            SangforNbAuth.getInstance().vpnQuit();
         }
         return false;
     }
@@ -202,6 +203,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
                  VpnLogin("false");
                  webInspect.vpnresult = null;
                  SangforNbAuth.getInstance().vpnQuit();
+                 //VpnPlugin.VpnCheck();
                  timer.cancel();
              }
         }
