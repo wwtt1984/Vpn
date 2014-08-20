@@ -19,18 +19,12 @@ import com.sangfor.vpn.common.VpnCommon;
 import android.app.Activity;
 import android.view.View;
 
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Enumeration;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 
-
 import android.content.Context;
-
 
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
@@ -39,21 +33,23 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.format.Formatter;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     private static CallbackContext CallbackContext;
-    Timer timer;
-    public static String User = "";
-    public static String Pwd = "";
-    private static WifiManager wifiManager;
-    private static DhcpInfo dhcpInfo;
-    private static WifiInfo wifiInfo;
+    private String User = "";
+    private String Pwd = "";
+    private WifiManager wifiManager;
+    private DhcpInfo dhcpInfo;
+    private WifiInfo wifiInfo;
 
     public boolean execute(String action, JSONArray data,
             CallbackContext callbackContext) throws JSONException {
         if (action.equals("Vpn")) {
-            timer = new Timer();
-            timer.schedule(new RemindTask(),0,500);
             User = data.getString(0);
             Pwd = data.getString(1);
             this.VpnCheck();
@@ -67,7 +63,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
         else if(action.equals("VpnCheckOnLine"))
         {
-            if(webInspect.vpnresult != "true")
+            if(this.requestByHttpGet() != "true")
             {
                 callbackContext.success("false");
             }
@@ -84,7 +80,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         return false;
     }
 
-    public static void VpnLogin(String message) {
+    public void VpnLogin(String message) {
         CallbackContext.success(message);
     }
 
@@ -114,7 +110,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
      *
      * @return 成功返回true，失败返回false，一般情况下返回true
      */
-    public boolean initSslVpn() {
+    private boolean initSslVpn() {
         SangforNbAuth sfAuth = SangforNbAuth.getInstance();
         InetAddress iAddr = null;
         try {
@@ -143,7 +139,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
      * @param authType
      *            认证类型
      */
-    public void doVpnLogin(int authType) {
+    private void doVpnLogin(int authType) {
 
         boolean ret = false;
         SangforNbAuth sForward = SangforNbAuth.getInstance();
@@ -163,49 +159,10 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             break;
         }
         if (ret == true) {
+          //Toast.makeText(this.cordova.getActivity(), "234",3000).show();
           //Log.i(TAG, "success to call login method");
         } else {
           //Log.i(TAG, "fail to call login method");
-        }
-    }
-
-
-    class RemindTask extends TimerTask{
-
-        int numWarningBeeps = 60; ////////////循环30秒，如果还是不成功，则返回失败
-        public void run(){
-             if(numWarningBeeps > 0)
-             {
-                 if(webInspect.vpnresult == "true")
-                 {
-                     VpnLogin(webInspect.vpnresult);
-                     timer.cancel();
-                 }
-                 else if(webInspect.vpnresult == "initfalse")
-                 {
-                     VpnLogin(webInspect.vpnresult);
-                     timer.cancel();
-                 }
-                 else if(webInspect.vpnresult == "logout")
-                 {
-                      VpnLogin(webInspect.vpnresult);
-                      timer.cancel();
-                 }
-                 else if(webInspect.vpnresult == "error")
-                 {
-                       VpnLogin(webInspect.vpnresult);
-                       timer.cancel();
-                 }
-                 numWarningBeeps--;
-             }
-             else
-             {
-                 VpnLogin("false");
-                 webInspect.vpnresult = null;
-                 SangforNbAuth.getInstance().vpnQuit();
-                 //VpnPlugin.VpnCheck();
-                 timer.cancel();
-             }
         }
     }
 
@@ -217,7 +174,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     }
 
-    public String getGateWay(Context context){
+    private String getGateWay(Context context){
 
         String rtxvalue = "";
 
@@ -250,11 +207,11 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         return false;
     }
 
-    public String FormatIP(int IpAddress) {
+    private String FormatIP(int IpAddress) {
         return Formatter.formatIpAddress(IpAddress);
     }
 
-    public String getIp(Context context){
+    private String getIp(Context context){
          wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
          dhcpInfo = wifiManager.getDhcpInfo();
          wifiInfo = wifiManager.getConnectionInfo();
@@ -263,4 +220,28 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
          return "wifi_ip:"+FormatIP(ip);
     }
 
+
+    private String  requestByHttpGet(){
+
+        String path = "http://bpm.qgj.cn/test/data.ashx?t=CheckVersionAll&results=android";
+        String res = "false";
+        try
+        {
+            // 新建HttpGet对象
+            HttpGet httpGet = new HttpGet(path);
+            // 获取HttpClient对象
+            HttpClient httpClient = new DefaultHttpClient();
+            // 获取HttpResponse实例
+            HttpResponse httpResp = httpClient.execute(httpGet);
+            // 判断是够请求成功
+            if (httpResp.getStatusLine().getStatusCode() == 200) {
+                // 获取返回的数据
+                res = "true";
+            }
+        }
+        catch(Exception ex)
+        {
+        }
+         return res;
+    }
 }
