@@ -49,10 +49,24 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     public boolean execute(String action, JSONArray data,
             CallbackContext callbackContext) throws JSONException {
-        if (action.equals("Vpn")) {
+        if(action.equals("Vpn"))
+        {
             User = data.getString(0);
             Pwd = data.getString(1);
-            this.VpnCheck();
+            int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
+            switch (authStatus) {
+                case IVpnDelegate.VPN_STATUS_UNSTART:
+                this.VpnInit();///初始化VPN
+                break;
+                case IVpnDelegate.VPN_STATUS_INIT_OK:
+                VpnReset();///重新登录VPN
+                break;
+                case IVpnDelegate.VPN_STATUS_OK:////VPN连接正常
+                callbackContext.success("true");
+                break;
+                default:
+                break;
+            }
             CallbackContext = callbackContext;
             return true;
         }
@@ -63,19 +77,30 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
         else if(action.equals("VpnCheckOnLine"))
         {
-            if(this.requestByHttpGet() != "true")
-            {
-                callbackContext.success("false");
+
+            int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
+            Toast.makeText(this.cordova.getActivity(), ""+authStatus,3000).show();
+            String result = "";
+            switch (authStatus) {
+
+                case IVpnDelegate.VPN_STATUS_OK:////VPN连接正常
+                result = "true";
+                break;
+                default:
+                break;
             }
-            else
-            {
-                callbackContext.success("true");
-            }
+            callbackContext.success(result);
             return true;
         }
         else if(action.equals("VpnOFF"))
         {
-            SangforNbAuth.getInstance().vpnQuit();
+            VpnLogout();
+            return true;
+        }
+        else if(action.equals("VpnReset")) ////////////////重连
+        {
+           VpnReset();
+           return true;
         }
         return false;
     }
@@ -84,12 +109,29 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         CallbackContext.success(message);
     }
 
-    private void VpnCheck() {
-
-       final  Context cnn = this.cordova.getActivity();
+    private void VpnReset() {     /////重连VPN，VPN默认初始化成功
        this.cordova.getActivity().runOnUiThread(new Runnable() {
             public void run() {
-                 try {
+                doVpnLogin(IVpnDelegate.AUTH_TYPE_PASSWORD);
+            }
+       });
+    }
+
+    private void VpnLogout() {   ///////VPN退出
+        this.cordova.getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                SangforNbAuth.getInstance().vpnLogout();
+            }
+        });
+    }
+
+    private void VpnInit() {   //////////////VPN初始化并登陆验证
+
+       final Context cnn = this.cordova.getActivity();
+       this.cordova.getActivity().runOnUiThread(new Runnable() {
+            public void run() {
+                 try
+                 {
                      SangforNbAuth.getInstance().init(cnn,  webInspect.ivg);
                  }
                  catch (SFException e) {
@@ -97,9 +139,9 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
                  }
                  // 开始初始化VPN
                  if (initSslVpn() == false) {
-                      Toast.makeText(cnn, "VPN初始化失败",3000).show();
+                    Toast.makeText(cnn, "VPN初始化失败",3000).show();
                  }
-                 doVpnLogin(1);
+                 doVpnLogin(IVpnDelegate.AUTH_TYPE_PASSWORD);
             }
        });
 
@@ -159,7 +201,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             break;
         }
         if (ret == true) {
-          //Toast.makeText(this.cordova.getActivity(), "234",3000).show();
+          //Toast.makeText(this.cordova.getActivity(), "111",3000).show();
           //Log.i(TAG, "success to call login method");
         } else {
           //Log.i(TAG, "fail to call login method");
@@ -177,7 +219,6 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
     private String getGateWay(Context context){
 
         String rtxvalue = "";
-
         if(isWifi(context))
         {
             try
@@ -218,30 +259,5 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
          //wifiInfo返回当前的Wi-Fi连接的动态信息
          int ip = wifiInfo.getIpAddress();
          return "wifi_ip:"+FormatIP(ip);
-    }
-
-
-    private String  requestByHttpGet(){
-
-        String path = "http://bpm.qgj.cn/test/data.ashx?t=CheckVersionAll&results=android";
-        String res = "false";
-        try
-        {
-            // 新建HttpGet对象
-            HttpGet httpGet = new HttpGet(path);
-            // 获取HttpClient对象
-            HttpClient httpClient = new DefaultHttpClient();
-            // 获取HttpResponse实例
-            HttpResponse httpResp = httpClient.execute(httpGet);
-            // 判断是够请求成功
-            if (httpResp.getStatusLine().getStatusCode() == 200) {
-                // 获取返回的数据
-                res = "true";
-            }
-        }
-        catch(Exception ex)
-        {
-        }
-         return res;
     }
 }
