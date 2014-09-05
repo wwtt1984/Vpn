@@ -21,4 +21,8 @@ Vpn.prototype.VpnOFF = function (callback) {
     return cordova.exec(callback, null,"VpnPlugin","VpnOFF",[]);
 };
 
+Vpn.prototype.VpnReset = function (callback) {
+    return cordova.exec(callback, null,"VpnPlugin","VpnReset",[]);
+};
+
 module.exports = (new Vpn());
