@@ -54,6 +54,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             User = data.getString(0);
             Pwd = data.getString(1);
             int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
+            //Toast.makeText(this.cordova.getActivity(), ""+authStatus,3000).show();
             switch (authStatus) {
                 case IVpnDelegate.VPN_STATUS_UNSTART:
                 this.VpnInit();///初始化VPN
@@ -63,6 +64,18 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
                 break;
                 case IVpnDelegate.VPN_STATUS_OK:////VPN连接正常
                 callbackContext.success("true");
+                break;
+                case IVpnDelegate.VPN_STATUS_RELOGIN:////VPN连接正常
+                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号1",3000).show();
+                break;
+                case IVpnDelegate.VPN_STATUS_INITING:////VPN连接正常
+                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号2",3000).show();
+                break;
+                case IVpnDelegate.VPN_STATUS_LOGINING:////VPN连接正常
+                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号3",3000).show();
+                break;
+                case IVpnDelegate.VPN_STATUS_EXITING:////VPN连接正常
+                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号4",3000).show();
                 break;
                 default:
                 break;
@@ -77,9 +90,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
         else if(action.equals("VpnCheckOnLine"))
         {
-
             int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
-            Toast.makeText(this.cordova.getActivity(), ""+authStatus,3000).show();
             String result = "";
             switch (authStatus) {
 
@@ -94,7 +105,11 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
         else if(action.equals("VpnOFF"))
         {
-            VpnLogout();
+            int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
+            if(authStatus == IVpnDelegate.VPN_STATUS_OK)
+            {
+                VpnLogout();
+            }
             return true;
         }
         else if(action.equals("VpnReset")) ////////////////重连
