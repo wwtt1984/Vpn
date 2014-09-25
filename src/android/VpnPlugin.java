@@ -9,22 +9,20 @@ import android.util.Log;
 import android.widget.Toast;
 import com.mycompany.webInspect.webInspect;
 
-import java.io.IOException;
-import java.io.InputStream;
+import com.sangfor.ssl.IVpnDelegate;
+import com.sangfor.ssl.SFException;
+import com.sangfor.ssl.SangforAuth;
+import com.sangfor.ssl.common.VpnCommon;
+import com.sangfor.ssl.easyapp.SangforNbAuth;
 
-import com.sangfor.vpn.IVpnDelegate;
-import com.sangfor.vpn.SFException;
-import com.sangfor.vpn.auth.SangforNbAuth;
-import com.sangfor.vpn.common.VpnCommon;
-import android.app.Activity;
+import android.location.LocationManager;
 import android.view.View;
+import android.content.Context;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-
-import android.content.Context;
 
 import android.net.DhcpInfo;
 import android.net.wifi.WifiInfo;
@@ -32,11 +30,6 @@ import android.net.wifi.WifiManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.format.Formatter;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
@@ -54,7 +47,6 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             User = data.getString(0);
             Pwd = data.getString(1);
             int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
-            //Toast.makeText(this.cordova.getActivity(), ""+authStatus,3000).show();
             switch (authStatus) {
                 case IVpnDelegate.VPN_STATUS_UNSTART:
                 this.VpnInit();///初始化VPN
@@ -62,20 +54,8 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
                 case IVpnDelegate.VPN_STATUS_INIT_OK:
                 VpnReset();///重新登录VPN
                 break;
-                case IVpnDelegate.VPN_STATUS_OK:////VPN连接正常
+                case IVpnDelegate.VPN_STATUS_AUTH_OK:////VPN连接正常
                 callbackContext.success("true");
-                break;
-                case IVpnDelegate.VPN_STATUS_RELOGIN:////VPN连接正常
-                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号1",3000).show();
-                break;
-                case IVpnDelegate.VPN_STATUS_INITING:////VPN连接正常
-                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号2",3000).show();
-                break;
-                case IVpnDelegate.VPN_STATUS_LOGINING:////VPN连接正常
-                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号3",3000).show();
-                break;
-                case IVpnDelegate.VPN_STATUS_EXITING:////VPN连接正常
-                //Toast.makeText(this.cordova.getActivity(), "vpn状态抓取代码编号4",3000).show();
                 break;
                 default:
                 break;
@@ -94,7 +74,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             String result = "";
             switch (authStatus) {
 
-                case IVpnDelegate.VPN_STATUS_OK:////VPN连接正常
+                case IVpnDelegate.VPN_STATUS_AUTH_OK:////VPN连接正常
                 result = "true";
                 break;
                 default:
@@ -106,7 +86,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         else if(action.equals("VpnOFF"))
         {
             int authStatus =  SangforNbAuth.getInstance().vpnQueryStatus();
-            if(authStatus == IVpnDelegate.VPN_STATUS_OK)
+            if(authStatus == IVpnDelegate.VPN_STATUS_AUTH_OK)
             {
                 VpnLogout();
             }
@@ -117,6 +97,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
            VpnReset();
            return true;
         }
+
         return false;
     }
 
@@ -147,7 +128,9 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
             public void run() {
                  try
                  {
-                     SangforNbAuth.getInstance().init(cnn,  webInspect.ivg);
+                     SangforAuth sfAuth = SangforAuth.getInstance();
+                     sfAuth.init(cnn, webInspect.ivg);
+                     sfAuth.setLoginParam(AUTH_CONNECT_TIME_OUT, String.valueOf(5));
                  }
                  catch (SFException e) {
                      e.printStackTrace();
@@ -162,41 +145,27 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     }
 
-    /**
-     * 开始初始化VPN，该初始化为异步接口，后续动作通过回调函数通知结果
-     *
-     * @return 成功返回true，失败返回false，一般情况下返回true
-     */
-    private boolean initSslVpn() {
-        SangforNbAuth sfAuth = SangforNbAuth.getInstance();
-        InetAddress iAddr = null;
+   private boolean initSslVpn() {
+   		SangforAuth sfAuth = SangforAuth.getInstance();
+   		InetAddress mAddr = null;
         try {
-            iAddr = InetAddress.getByName("115.236.68.195");
-        } catch (UnknownHostException e) {
+            mAddr = InetAddress.getByName("115.236.68.195");
+        }
+        catch (UnknownHostException e) {
             e.printStackTrace();
         }
-        if (iAddr == null || iAddr.getHostAddress() == null) {
-            //Log.d(TAG, "vpn host error");
-            return false;
-        }
-        long host = VpnCommon.ipToLong(iAddr.getHostAddress());
-        int port = 443;
-        if (sfAuth.vpnInit(host, port) == false) {
-            //Log.d(TAG, "vpn init fail, errno is " + sfAuth.vpnGeterr());
-            return false;
-        }
-        //Log.d(TAG, "current vpn status is " + sfAuth.vpnQueryStatus());
-        return true;
-    }
+   		if (mAddr == null || mAddr.getHostAddress() == null) {
+   			return false;
+   		}
+   		long host = VpnCommon.ipToLong(mAddr.getHostAddress());
+   		int port = 443;
+   		if (sfAuth.vpnInit(host, port) == false) {
+   			return false;
+   		}
+   		return true;
+   	}
 
-    /**
-     * 处理认证，通过传入认证类型（需要的话可以改变该接口传入一个hashmap的参数用户传入认证参数）.
-     * 也可以一次性把认证参数设入，这样就如果认证参数全满足的话就可以一次性认证通过，可见下面屏蔽代码
-     *
-     * @param authType
-     *            认证类型
-     */
-    private void doVpnLogin(int authType) {
+   public void doVpnLogin(int authType) {
 
         boolean ret = false;
         SangforNbAuth sForward = SangforNbAuth.getInstance();
@@ -221,15 +190,16 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         } else {
           //Log.i(TAG, "fail to call login method");
         }
-    }
+   }
 
-    public void vpnCallback(int vpnResult, int authType) { //////////////不能删除，只作为覆盖，不执行操作
+    @Override
+    public void vpnCallback(int vpnResult, int authType) {}
 
-    }
+    @Override
+    public void vpnRndCodeCallback(byte[] data) {}
 
-    public void vpnRndCodeCallback(byte[] data) {
-
-    }
+    @Override
+    public void reloginCallback(int status, int result) {}
 
     private String getGateWay(Context context){
 
@@ -274,5 +244,18 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
          //wifiInfo返回当前的Wi-Fi连接的动态信息
          int ip = wifiInfo.getIpAddress();
          return "wifi_ip:"+FormatIP(ip);
+    }
+
+    private final boolean isOPen(final Context context) {
+        LocationManager locationManager
+                                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        // 通过GPS卫星定位，定位级别可以精确到街（通过24颗卫星定位，在室外和空旷的地方定位准确、速度快）
+        boolean gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        // 通过WLAN或移动网络(3G/2G)确定的位置（也称作AGPS，辅助GPS定位。主要用于在室内或遮盖物（建筑群或茂密的深林等）密集的地方定位）
+        boolean network = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if (gps || network) {
+            return true;
+        }
+        return false;
     }
 }

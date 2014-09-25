@@ -31,6 +31,7 @@
 
         <source-file src="src/android/VpnPlugin.java" target-dir="src/com/vpn/vpn"/>
         <source-file src="libs/android/SangforSDK.jar" target-dir="libs"/>
+        <source-file src="libs/android/android-support-v4.jar" target-dir="libs"/>
         <source-file src="libs/android/armeabi/libauth_forward.so" target-dir="libs/armeabi"/>
 
     </platform>
