@@ -29,4 +29,8 @@ Vpn.prototype.VpnGPSON = function (callback) {
     return cordova.exec(callback, null,"VpnPlugin","VpnGPSON",[]);
 };
 
+Vpn.prototype.VpnGPSSet = function () {
+    return cordova.exec(null, null,"VpnPlugin","VpnGPSSet",[]);
+};
+
 module.exports = (new Vpn());

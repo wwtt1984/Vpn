@@ -31,6 +31,10 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.format.Formatter;
 
+import android.content.Intent;
+import android.provider.Settings;
+import android.content.ActivityNotFoundException;
+
 public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     private static CallbackContext CallbackContext;
@@ -99,12 +103,14 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
         else if(action.equals("VpnGPSON")) ////////////////判断 GPS 
         {
-            String result = "true";
-            if(isOPen(this.cordova.getActivity()) == false)
-            {
-                result = "false";
-            }
+           String result = isOPen(this.cordova.getActivity());
            callbackContext.success(result);
+           return true;
+        }
+
+        else if(action.equals("VpnGPSSet")) ////////////////到 GPS 设置界面
+        {
+           SetGPSOPen();
            return true;
         }
 
@@ -256,7 +262,7 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
          return "wifi_ip:"+FormatIP(ip);
     }
 
-    private final boolean isOPen(final Context context) {
+    private String isOPen(final Context context) {
         LocationManager locationManager
                                  = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         // 通过GPS卫星定位，定位级别可以精确到街（通过24颗卫星定位，在室外和空旷的地方定位准确、速度快）
@@ -264,8 +270,30 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         // 通过WLAN或移动网络(3G/2G)确定的位置（也称作AGPS，辅助GPS定位。主要用于在室内或遮盖物（建筑群或茂密的深林等）密集的地方定位）
         boolean network = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         if (gps || network) {
-            return true;
+            return "true";
         }
-        return false;
+        return "false";
     }
+
+     private void SetGPSOPen() {
+
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try
+        {
+           this.cordova.getActivity().startActivity(intent);
+
+        } catch(ActivityNotFoundException ex)
+        {
+           intent.setAction(Settings.ACTION_SETTINGS);
+           try {
+                 this.cordova.getActivity().startActivity(intent);
+           }
+           catch (Exception e) {
+           }
+        }
+
+
+     }
 }
