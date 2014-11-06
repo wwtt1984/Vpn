@@ -25,4 +25,8 @@ Vpn.prototype.VpnReset = function (callback) {
     return cordova.exec(callback, null,"VpnPlugin","VpnReset",[]);
 };
 
+Vpn.prototype.VpnGPSON = function (callback) {
+    return cordova.exec(callback, null,"VpnPlugin","VpnGPSON",[]);
+};
+
 module.exports = (new Vpn());

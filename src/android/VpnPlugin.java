@@ -97,6 +97,16 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
            VpnReset();
            return true;
         }
+        else if(action.equals("VpnGPSON")) ////////////////判断 GPS 
+        {
+            String result = "true";
+            if(isOPen(this.cordova.getActivity()) == false)
+            {
+                result = "false";
+            }
+           callbackContext.success(result);
+           return true;
+        }
 
         return false;
     }
