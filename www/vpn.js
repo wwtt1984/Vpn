@@ -33,4 +33,9 @@ Vpn.prototype.VpnGPSSet = function () {
     return cordova.exec(null, null,"VpnPlugin","VpnGPSSet",[]);
 };
 
+Vpn.prototype.VpnInputON = function () {
+    return cordova.exec(null, null,"VpnPlugin","VpnInputON",[]);
+};
+
+
 module.exports = (new Vpn());

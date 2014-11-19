@@ -35,6 +35,9 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.content.ActivityNotFoundException;
 
+import android.view.inputmethod.InputMethodManager;
+import android.app.ActivityManager;
+
 public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
 
     private static CallbackContext CallbackContext;
@@ -107,10 +110,15 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
            callbackContext.success(result);
            return true;
         }
-
         else if(action.equals("VpnGPSSet")) ////////////////到 GPS 设置界面
         {
            SetGPSOPen();
+           return true;
+        }
+        else if(action.equals("VpnInputON")) ///////////////键盘是否打开
+        {
+           String result = GetInputON();
+           callbackContext.success(result);
            return true;
         }
 
@@ -295,5 +303,19 @@ public class VpnPlugin extends CordovaPlugin implements IVpnDelegate{
         }
 
 
+     }
+
+
+      private String GetInputON() {
+
+        String result = "false";
+        InputMethodManager imm = (InputMethodManager)this.cordova.getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        boolean isOpen = imm.isActive();//isOpen若返回true，则表示输入法打开
+        if(isOpen)
+        {
+            //imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
+            result = "true";
+        }
+        return result;
      }
 }
