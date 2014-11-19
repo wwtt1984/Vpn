@@ -33,8 +33,8 @@ Vpn.prototype.VpnGPSSet = function () {
     return cordova.exec(null, null,"VpnPlugin","VpnGPSSet",[]);
 };
 
-Vpn.prototype.VpnInputON = function () {
-    return cordova.exec(null, null,"VpnPlugin","VpnInputON",[]);
+Vpn.prototype.VpnInputON = function (callback) {
+    return cordova.exec(callback, null,"VpnPlugin","VpnInputON",[]);
 };
 
 
